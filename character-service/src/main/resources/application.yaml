@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: character-service
+  config:
+    import: configserver:http://localhost:8001
+    cloud:
+      config:
+        profile: native
