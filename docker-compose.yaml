@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: character_service_db
+      POSTGRES_USER: character
+      POSTGRES_PASSWORD: character
+    ports:
+      - "5432:5432"
+    networks:
+      - dnd-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  registry-service:
+    build: ./registry-service
+    ports:
+      - "8761:8761"
+    networks:
+      - dnd-network
+
+  config-service:
+    build: ./config-service
+    ports:
+      - "8888:8888"
+    networks:
+      - dnd-network
+    depends_on:
+      - registry-service
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registry-service:8761/eureka
+
+  character-service:
+    build: ./character-service
+    ports:
+      - "8081:8081"
+    networks:
+      - dnd-network
+    depends_on:
+      - postgres
+      - registry-service
+      - config-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/character_service_db
+      - SPRING_DATASOURCE_USERNAME=character
+      - SPRING_DATASOURCE_PASSWORD=character
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registry-service:8761/eureka
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
+
+  gateway-service:
+    build: ./gateway-service
+    ports:
+      - "8080:8080"
+    networks:
+      - dnd-network
+    depends_on:
+      - registry-service
+      - config-service
+      - character-service
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registry-service:8761/eureka
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
+
+networks:
+  dnd-network:
+    driver: bridge
+
+volumes:
+  postgres-data:

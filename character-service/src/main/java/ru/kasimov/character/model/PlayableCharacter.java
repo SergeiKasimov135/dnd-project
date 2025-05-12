@@ -1,5 +1,6 @@
 package ru.kasimov.character.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -23,7 +24,7 @@ public class PlayableCharacter {
     private Long id;
 
     @NotNull
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @NotNull
@@ -46,6 +47,7 @@ public class PlayableCharacter {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @JsonManagedReference
     private List<AbilityScore> abilities = new ArrayList<>();
 
     @Builder

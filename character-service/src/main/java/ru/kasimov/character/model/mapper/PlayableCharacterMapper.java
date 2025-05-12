@@ -9,6 +9,7 @@ import ru.kasimov.character.model.dto.PlayableCharacterDto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper
 public interface PlayableCharacterMapper {
@@ -33,7 +34,7 @@ public interface PlayableCharacterMapper {
                         .backgroundModifier(dto.backgroundModifier() != null ? dto.backgroundModifier() : 0)
                         .character(character)
                         .build())
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
 
     }
 

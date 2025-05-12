@@ -1,8 +1,8 @@
 package ru.kasimov.character.service;
 
 import lombok.RequiredArgsConstructor;
-import org.mapstruct.ap.internal.model.assignment.ExistingInstanceSetterWrapperForCollectionsAndMaps;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.kasimov.character.model.AbilityScore;
 import ru.kasimov.character.model.PlayableCharacter;
 import ru.kasimov.character.model.dto.PlayableCharacterDto;
@@ -20,8 +20,9 @@ public class DefaultCharacterService implements PlayableCharacterService {
     private final PlayableCharacterRepository characterRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public Iterable<PlayableCharacter> findAllCharacters(String nameFilter) {
-        if (nameFilter == null || !nameFilter.isBlank()) {
+        if (nameFilter != null && !nameFilter.isBlank()) {
             return this.characterRepository.findAllByNameLikeIgnoreCase("%" + nameFilter + "%");
         } else {
             return this.characterRepository.findAll();
@@ -29,6 +30,7 @@ public class DefaultCharacterService implements PlayableCharacterService {
     }
 
     @Override
+    @Transactional
     public PlayableCharacter createCharacter(PlayableCharacterDto playableCharacterDto) {
         PlayableCharacter playableCharacter = PlayableCharacterMapper.INSTANCE.toEntity(playableCharacterDto);
 
@@ -41,13 +43,15 @@ public class DefaultCharacterService implements PlayableCharacterService {
     }
 
     @Override
-    public Optional<PlayableCharacter> findCharacterById(Long characterId) {
-        return this.characterRepository.findById(characterId);
+    @Transactional(readOnly = true)
+    public Optional<PlayableCharacter> findCharacterById(Long id) {
+        return this.characterRepository.findById(id);
     }
 
     @Override
-    public PlayableCharacter editCharacter(Long characterId, PlayableCharacterDto playableCharacterDto) {
-        return this.characterRepository.findById(characterId)
+    @Transactional
+    public PlayableCharacter editCharacter(Long id, PlayableCharacterDto playableCharacterDto) {
+        return this.characterRepository.findById(id)
                 .map(existedCharacter -> {
                     existedCharacter.setName(playableCharacterDto.name());
                     existedCharacter.setSpecie(playableCharacterDto.specie());
@@ -58,7 +62,9 @@ public class DefaultCharacterService implements PlayableCharacterService {
                     List<AbilityScore> abilities = PlayableCharacterMapper.INSTANCE.mapAbilities(
                             playableCharacterDto.abilities(), existedCharacter
                     );
-                    existedCharacter.setAbilities(abilities);
+
+                    existedCharacter.getAbilities().clear();
+                    existedCharacter.getAbilities().addAll(abilities);
 
                     return this.characterRepository.save(existedCharacter);
                 })
@@ -66,8 +72,9 @@ public class DefaultCharacterService implements PlayableCharacterService {
     }
 
     @Override
-    public void deleteCharacterById(Long characterId) {
-        this.characterRepository.deleteById(characterId);
+    @Transactional
+    public void deleteCharacterById(Long id) {
+        this.characterRepository.deleteById(id);
     }
 
 }

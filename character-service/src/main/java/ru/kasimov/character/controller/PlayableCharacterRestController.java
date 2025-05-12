@@ -27,21 +27,20 @@ public class PlayableCharacterRestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PlayableCharacter> findCharacterById(@PathVariable Long id) {
+    public ResponseEntity<PlayableCharacter> findCharacterById(@PathVariable("id") Long id) {
         return this.characterService.findCharacterById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<PlayableCharacter> editCharacter(@PathVariable Long id,
-                                                               @RequestBody @Valid PlayableCharacterDto characterDto) {
+    @PutMapping("/{id}")
+    public ResponseEntity<PlayableCharacter> editCharacter(@PathVariable("id") Long id,
+                                                           @RequestBody @Valid PlayableCharacterDto characterDto) {
         return ResponseEntity.ok(this.characterService.editCharacter(id, characterDto));
     }
 
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCharacterById(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteCharacterById(@PathVariable("id") Long id) {
         this.characterService.deleteCharacterById(id);
 
         return ResponseEntity.noContent().build();
